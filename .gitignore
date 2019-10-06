@@ -12,3 +12,4 @@
 /.DS_Store
 /models/__pycache__
 /.vscode
+/checkpoints.zip
