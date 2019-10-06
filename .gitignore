@@ -1,0 +1,13 @@
+# Initially taken from Github's Python gitignore file
+
+# Demo
+/data
+/checkpoints
+/runs
+/creeper/__pycache__
+/mrc/__pycache__
+/rerank/__pycache__
+/preprocess/.DS_Store
+/.DS_Store
+/models/__pycache__
+/.vscode
