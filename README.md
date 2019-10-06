@@ -8,7 +8,10 @@
 
 
 # BIT_OPEN_DOMAIN_QA
+###### **富强，民主，文明，和谐，自由，平等，公正，法治，爱国，敬业，诚信，友善**
 ## Introduction
+Here is our group's project for CCF & Baidu 2019 Reading Comprehension Competition, dataset is Baidu Dureader. We apply the competition models to build a open domain QA system, which can process the query-related docs from search engine and outpit short and informative answers. You can ask any questions you want here. 
+
 ## Get Started
 ### Server
 ### Train
