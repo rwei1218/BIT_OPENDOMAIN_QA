@@ -6,6 +6,7 @@
 /runs
 /creeper/__pycache__
 /mrc/__pycache__
+/mrc/.DS_Store
 /rerank/__pycache__
 /preprocess/.DS_Store
 /.DS_Store
