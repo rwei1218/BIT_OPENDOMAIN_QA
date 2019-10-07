@@ -3,6 +3,7 @@
 # Demo
 /data
 /checkpoints
+!checkpoints/gitkeep
 /runs
 /creeper/__pycache__
 /mrc/__pycache__
