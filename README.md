@@ -26,3 +26,6 @@
 ```
 2. Change config file: `config.py`
 3. Run the server: `python server.py`
+
+## TODO LIST
+- [ ] Deploy two bert model by tensorflow serving
