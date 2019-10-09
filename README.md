@@ -25,7 +25,8 @@
 ...
 ```
 2. Change config file: `config.py`
-3. Run the server: `python server.py`
+3. Run the server: `python server.py --config_path=config_v1.json --port=7891`
+4. Run the server on gpu: `CUDA_VISIBLE_DEVICES=0 nohup python server.py --config_path=config_v1.json --port=7891`
 
 ## TODO LIST
 - [ ] Deploy two bert model by tensorflow serving
