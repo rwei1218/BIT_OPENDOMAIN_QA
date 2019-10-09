@@ -63,7 +63,7 @@ def crawl_baidu_cache_page(url):
         line = line.strip()
         if line:
             valid_lines.append(line)
-    valid_content = "\n".join(valid_lines)
+    valid_content = "。".join(valid_lines)
     return valid_content
 
 

@@ -1,6 +1,6 @@
 {
     "creeper": {
-        "creeper_type": "v1"
+        "creeper_type": "v2"
     },
     "mrc":{
         "model_name_or_path": "checkpoints/mrc_model",
@@ -11,7 +11,7 @@
         "per_gpu_predict_batch_size": 32,
         "n_best_size": 20,
         "max_answer_length": 512,
-        "no_cuda": true,
+        "no_cuda": false,
         "seed": 42,
         "do_lower_case": true,
         "verbose_logging": false,
@@ -22,7 +22,7 @@
         "model_type": "bert",
         "max_seq_length": 128,
         "per_gpu_predict_batch_size": 5,
-        "no_cuda": true,
+        "no_cuda": false,
         "seed": 42,
         "do_lower_case": true,
         "local_rank": -1 

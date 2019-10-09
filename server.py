@@ -292,7 +292,15 @@ class Demo(object):
 
 if __name__ == "__main__":
     app = Flask(__name__)
-    D = Demo('config.json')
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config_path", default=None, type=str, required=True,
+                        help="config json")
+    parser.add_argument("--port", default=None, type=int, required=True,
+                        help="config json")
+    args = parser.parse_args()
+
+    D = Demo(args.config_path)
 
     @app.route('/demo', methods=['POST', 'GET'])
     def translate():
@@ -306,4 +314,4 @@ if __name__ == "__main__":
         except Exception as e:
             return json.dumps({'code': 1, 'messge': str(e)})
 
-    app.run(host="0.0.0.0", port=7891,threaded=True)
+    app.run(host="0.0.0.0", port=args.port, threaded=True)

@@ -1,8 +1,8 @@
 # Initially taken from Github's Python gitignore file
 
 # Demo
-/data
-/checkpoints
+/data/*
+/checkpoints/*
 /runs
 /creeper/__pycache__
 /mrc/__pycache__
@@ -13,3 +13,4 @@
 /models/__pycache__
 /.vscode
 /checkpoints.zip
+/pictures/.DS_Store
