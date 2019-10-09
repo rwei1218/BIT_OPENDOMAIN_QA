@@ -1,7 +1,31 @@
-# BIT_OPENDOMAIN_QA
-## Get Started for Server
-1. 预训练模型地址：https://drive.google.com/open?id=1eX_hZlSdPsdXeYD1MdtFQIbo7BMeHA1g
-2. 预训练模型包括：chinese_L-12_H-768_A-12, mrc_model, output三个文件夹，在BIT_OPENDOMAIN_QA建立checkpoints文件夹，并修改文件名如下图所示
-![checkpoints](pictures/p1.png)
-3. 设定自己的config文件，包括是否使用cuda等等
-4. python server.py
+# BIT OPEN-DOMAIN QA
+
+## Introduction
+* Here is our group's project for CCF & Baidu 2019 Reading Comprehension Competition. We apply the competition models to build a open domain QA system, which can process the query-related docs from search engine and output short and informative answers. You can ask any questions you want here. 
+* This project provide you the training scripts for LIC 2019, a demo server and the pretrained models. Weather you want to study the reading comprehension problem in DuReader dataset or build a open domain QA engine, you can find what you want here.
+
+
+## Get Started
+1. Download [model files](https://drive.google.com/open?id=1EsRZjUDlXRifYOjZhfjdhQYPHyuPE5dN):`chinese_L-12_H-768_A-12`, `mrc_model` and `rerank_model`. Then unzip and move to`checkpoints`directory. Finally the project structure will be:
+```bash
+.
+├── checkpoints
+│   ├── chinese_L-12_H-768_A-12
+│   │   ├── config.json
+│   │   ├── pytorch_model.bin
+│   │   └── vocab.txt
+│   ├── mrc_model
+│   │   ├── config.json
+│   │   ├── pytorch_model.bin
+│   │   └── vocab.txt
+│   └── rerank_model
+│       ├── config.json
+│       ├── pytorch_model.bin
+│       └── vocab.txt
+...
+```
+2. Change config file: `config.py`
+3. Run the server: `python server.py`
+
+## TODO LIST
+- [ ] Deploy two bert model by tensorflow serving
