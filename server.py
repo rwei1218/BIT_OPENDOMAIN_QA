@@ -8,6 +8,7 @@ import random
 import re
 import sys
 
+import jieba
 import numpy as np
 import torch
 from flask import Flask, jsonify, request
@@ -265,7 +266,7 @@ class Demo(object):
             "title",
             "abstract",
             "source_link",
-            "content",
+            # "content",
             "answer",
             "final_prob",
             "rank_index"
@@ -288,7 +289,23 @@ class Demo(object):
         examples = self.choose_processor.process(examples)
         examples = self.filter(examples, self.keys)
         return examples
-        
+
+    def predict_v2(self, querys: list, doc: str):
+        examples = []
+        doc_tokens = list(jieba.cut(doc))
+        for index, query in enumerate(querys):
+            example = {
+                'question_id': index,
+                'question': query,
+                'doc_tokens': doc_tokens
+            }
+            examples.append(example)
+        examples = self.mrc_processor.predict(examples)
+        for example in examples:
+            example['answer'] = self.choose_processor.clean_answer(example['answer'])
+        examples = self.filter(examples, self.keys)
+        return examples
+
 
 if __name__ == "__main__":
     app = Flask(__name__)
@@ -302,8 +319,8 @@ if __name__ == "__main__":
 
     D = Demo(args.config_path)
 
-    @app.route('/demo', methods=['POST', 'GET'])
-    def translate():
+    @app.route('/demo/open_domain', methods=['POST', 'GET'])
+    def func1():
         try:
             if request.method == 'POST':
                 inputs = request.get_json(force=True)
@@ -311,6 +328,17 @@ if __name__ == "__main__":
             else:
                 query = request.args.get('query')
             return json.dumps({'code': 0, 'results': D.predict(query)}, ensure_ascii=False)
+        except Exception as e:
+            return json.dumps({'code': 1, 'messge': str(e)})
+
+    @app.route('/demo/doc_based', methods=['POST'])
+    def func2():
+        try:
+            if request.method == 'POST':
+                inputs = request.get_json(force=True)
+                querys = inputs['querys']
+                doc = inputs['doc']
+            return json.dumps({'code': 0, 'results': D.predict_v2(querys, doc)}, ensure_ascii=False)
         except Exception as e:
             return json.dumps({'code': 1, 'messge': str(e)})
 
