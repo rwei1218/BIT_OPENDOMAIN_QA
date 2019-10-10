@@ -310,9 +310,14 @@ class Demo(object):
             }
             examples.append(example)
         examples = self.mrc_processor.predict(examples)
+        mrc_prob = []
         for example in examples:
             example['answer'] = self.choose_processor.clean_answer(example['answer'])
-        sorted(examples, key=lambda x: x['mrc_logits'], reverse=True)
+            mrc_prob.append(example['mrc_logits'])
+        mrc_prob = self.choose_processor._compute_softmax(mrc_prob)
+        for index, example in enumerate(examples):
+            example['final_prob'] = mrc_prob[index]
+        examples = sorted(examples, key=lambda x: x['final_prob'], reverse=True)
         examples = self.filter(examples, self.keys)
         return examples
 
