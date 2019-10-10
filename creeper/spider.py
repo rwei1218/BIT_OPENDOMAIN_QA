@@ -28,24 +28,27 @@ def crawl_baidu_search(keyword, num=5):
     search_data = []
     search_results = content_tree.xpath('//div[@class="result c-container "]')[:10]
     for index, search_result in enumerate(search_results, 1):
-        abstract = search_result.xpath('.//div[@class="c-abstract"]')[0]
-        abstract = abstract.xpath('string(.)')
-        source = search_result.xpath('.//a[@data-click]')[0]
-        source_link = source.xpath('./@href')[0]
-        title = source.xpath('string(.)')
-        baidu_cache_link = search_result.xpath('.//a[text()="百度快照"]/@href')[0] + "&fast=y"
-        search_data.append(
-            {
-                'question_id': index,
-                'question': keyword,
-                'title': title,
-                'abstract': abstract,
-                'source_link': source_link,
-                'baidu_cache_link': baidu_cache_link
-            }
-        )
-        if len(search_data) == num:
-            break
+        try:
+            abstract = search_result.xpath('.//div[@class="c-abstract"]')[0]
+            abstract = abstract.xpath('string(.)')
+            source = search_result.xpath('.//a[@data-click]')[0]
+            source_link = source.xpath('./@href')[0]
+            title = source.xpath('string(.)')
+            baidu_cache_link = search_result.xpath('.//a[text()="百度快照"]/@href')[0] + "&fast=y"
+            search_data.append(
+                {
+                    'question_id': index,
+                    'question': keyword,
+                    'title': title,
+                    'abstract': abstract,
+                    'source_link': source_link,
+                    'baidu_cache_link': baidu_cache_link
+                }
+            )
+            if len(search_data) == num:
+                break
+        except:
+            pass
     return search_data
 
 
