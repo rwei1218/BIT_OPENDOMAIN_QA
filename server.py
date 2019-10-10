@@ -232,7 +232,6 @@ class Choose(object):
     def process(self, examples):
         mrc_prob = []
         rerank_prob = []
-        final_prob = []
         for example in examples:
             mrc_prob.append(example['mrc_logits'])
             rerank_prob.append(example['rerank_logits'])
@@ -241,12 +240,8 @@ class Choose(object):
         for example, pp, pm, pr in zip(examples, self.pre_prob, mrc_prob, rerank_prob):
             example['final_prob'] = pp * pm * pr
             example['pp_pm_pr'] = [pp, pm, pr]
-            final_prob.append(pp * pm * pr)
-        final_prob = sorted(final_prob, reverse=True)
-        for example in examples:
-            example['rank_index'] = final_prob.index(example['final_prob'])
             example['answer'] = self.clean_answer(example['answer'])
-        
+        examples = sorted(examples, key=lambda x: x['final_prob'], reverse=True)
         return examples
     
 
@@ -266,10 +261,8 @@ class Demo(object):
             "title",
             "abstract",
             "source_link",
-            # "content",
             "answer",
-            "final_prob",
-            "rank_index"
+            "final_prob"
         ]
 
     def filter(self, examples, keys):
@@ -306,6 +299,22 @@ class Demo(object):
         examples = self.filter(examples, self.keys)
         return examples
 
+    def predict_v3(self, query: str, docs: list):
+        examples = []
+        for index, doc in enumerate(docs):
+            doc_tokens = list(jieba.cut(doc))
+            example = {
+                'question_id': index,
+                'question': query,
+                'doc_tokens': doc_tokens
+            }
+            examples.append(example)
+        examples = self.mrc_processor.predict(examples)
+        for example in examples:
+            example['answer'] = self.choose_processor.clean_answer(example['answer'])
+        sorted(examples, key=lambda x: x['mrc_logits'], reverse=True)
+        examples = self.filter(examples, self.keys)
+        return examples
 
 if __name__ == "__main__":
     app = Flask(__name__)
@@ -319,7 +328,7 @@ if __name__ == "__main__":
 
     D = Demo(args.config_path)
 
-    @app.route('/demo/open_domain', methods=['POST', 'GET'])
+    @app.route('/api/func1', methods=['POST', 'GET'])
     def func1():
         try:
             if request.method == 'POST':
@@ -331,7 +340,7 @@ if __name__ == "__main__":
         except Exception as e:
             return json.dumps({'code': 1, 'messge': str(e)})
 
-    @app.route('/demo/doc_based', methods=['POST'])
+    @app.route('/api/func2', methods=['POST'])
     def func2():
         try:
             if request.method == 'POST':
@@ -339,6 +348,17 @@ if __name__ == "__main__":
                 querys = inputs['querys']
                 doc = inputs['doc']
             return json.dumps({'code': 0, 'results': D.predict_v2(querys, doc)}, ensure_ascii=False)
+        except Exception as e:
+            return json.dumps({'code': 1, 'messge': str(e)})
+
+    @app.route('/api/func3', methods=['POST'])
+    def func3():
+        try:
+            if request.method == 'POST':
+                inputs = request.get_json(force=True)
+                query = inputs['query']
+                docs = inputs['docs']
+            return json.dumps({'code': 0, 'results': D.predict_v3(query, docs)}, ensure_ascii=False)
         except Exception as e:
             return json.dumps({'code': 1, 'messge': str(e)})
 
