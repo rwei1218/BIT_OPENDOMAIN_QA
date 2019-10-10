@@ -1,8 +1,14 @@
 # Initially taken from Github's Python gitignore file
 
 # Demo
+<<<<<<< HEAD
 /data/*
 /checkpoints/*
+=======
+/data
+/checkpoints
+!checkpoints/gitkeep
+>>>>>>> 764b13120b51619aeec876e620a60765ea77555e
 /runs
 /creeper/__pycache__
 /mrc/__pycache__
