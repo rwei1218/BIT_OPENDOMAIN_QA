@@ -131,8 +131,12 @@ class Mrc(object):
         for example in examples:
             qid = example['question_id']
             logitslist =[var['start_logit'] + var['end_logit'] for var in all_nbest_json[qid]]
+            problist = [var['start_prob'] * var['end_prob'] for var in all_nbest_json[qid]]
+            problist_v1 = [var['start_prob_v1'] * var['end_prob_v1'] for var in all_nbest_json[qid]]
             example['answer'] = all_predictions[qid].replace('\n', '').replace(' ', '').strip()
             example['mrc_logits'] = sum(logitslist)/len(logitslist)
+            example['mrc_prob'] = sum(problist)/len(problist)
+            example['mrc_prob_v1'] = sum(problist_v1)/len(problist_v1)
         return examples
 
 
@@ -262,7 +266,8 @@ class Demo(object):
             "abstract",
             "source_link",
             "answer",
-            "final_prob"
+            "final_prob",
+            "final_prob_v1"
         ]
 
     def filter(self, examples, keys):
@@ -312,7 +317,8 @@ class Demo(object):
         examples = self.mrc_processor.predict(examples)
         for example in examples:
             example['answer'] = self.choose_processor.clean_answer(example['answer'])
-            example['final_prob'] = example['mrc_logits']
+            example['final_prob'] = example['mrc_prob']
+            example['final_prob_v1'] = example['mrc_prob_v1']
             
         examples = sorted(examples, key=lambda x: x['final_prob'], reverse=True)
         examples = self.filter(examples, self.keys)

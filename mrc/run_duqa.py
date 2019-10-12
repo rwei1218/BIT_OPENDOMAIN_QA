@@ -10,13 +10,9 @@ import os
 import random
 import sys
 
-# ## 难顶啊。不会搞路径，只能暴力加
-# ## training过程使用
-# sys.path.append('/Users/rwei/Desktop/transformers')
-# sys.path.append('/Users/rwei/Desktop/transformers/BIT_OpenDomain_QA')
-
 import numpy as np
 import torch
+from tensorboardX import SummaryWriter
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler,
                               TensorDataset)
 from torch.utils.data.distributed import DistributedSampler
@@ -25,10 +21,10 @@ from transformers import (WEIGHTS_NAME, AdamW, BertConfig, BertTokenizer,
                           WarmupLinearSchedule)
 
 from models import BertForBaiduQA_Answer_Selection
+
 from .utils_duqa import (RawResult, convert_examples_to_features,
-                            convert_output, read_baidu_examples,
-                            read_baidu_examples_pred, write_predictions)
-from tensorboardX import SummaryWriter
+                         convert_output, read_baidu_examples,
+                         read_baidu_examples_pred, write_predictions)
 
 logger = logging.getLogger(__name__)
 

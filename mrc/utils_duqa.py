@@ -519,7 +519,7 @@ def convert_output(all_examples, all_features, all_results, n_best_size,
 
     _PrelimPrediction = collections.namedtuple(  # pylint: disable=invalid-name
         "PrelimPrediction",
-        ["feature_index", "start_index", "end_index", "start_logit", "end_logit"])
+        ["feature_index", "start_index", "end_index", "start_logit", "end_logit", "start_prob", "end_prob", "start_prob_v1", "end_prob_v1"])
 
     all_predictions = collections.OrderedDict()
     all_nbest_json = collections.OrderedDict()
@@ -558,7 +558,11 @@ def convert_output(all_examples, all_features, all_results, n_best_size,
                             start_index=start_index,
                             end_index=end_index,
                             start_logit=result.start_logits[start_index],
-                            end_logit=result.end_logits[end_index]))
+                            end_logit=result.end_logits[end_index],
+                            start_prob=_compute_softmax([result.start_logits[start_index], result.end_logits[start_index]])[0],
+                            start_prob_v1=_compute_sigmoid(result.start_logits[start_index]),
+                            end_prob=_compute_softmax([result.start_logits[end_index], result.end_logits[end_index]])[1],
+                            end_prob_v1=_compute_sigmoid(result.end_logits[end_index])))
 
         prelim_predictions = sorted(
             prelim_predictions,
@@ -566,7 +570,7 @@ def convert_output(all_examples, all_features, all_results, n_best_size,
             reverse=True)
 
         _NbestPrediction = collections.namedtuple(  # pylint: disable=invalid-name
-            "NbestPrediction", ["text", "start_logit", "end_logit"])
+            "NbestPrediction", ["text", "start_logit", "end_logit", "start_prob", "end_prob", "start_prob_v1", "end_prob_v1"])
 
         seen_predictions = {}
         nbest = []
@@ -599,7 +603,11 @@ def convert_output(all_examples, all_features, all_results, n_best_size,
                 _NbestPrediction(
                     text=final_text,
                     start_logit=pred.start_logit,
-                    end_logit=pred.end_logit))
+                    end_logit=pred.end_logit,
+                    start_prob=pred.start_prob,
+                    start_prob_v1=pred.start_prob_v1,
+                    end_prob=pred.end_prob,
+                    end_prob_v1=pred.end_prob_v1))
 
         # In very rare edge cases we could have no valid predictions. So we
         # just create a nonce prediction in this case to avoid failure.
@@ -622,6 +630,10 @@ def convert_output(all_examples, all_features, all_results, n_best_size,
             output["probability"] = probs[i]
             output["start_logit"] = entry.start_logit
             output["end_logit"] = entry.end_logit
+            output["start_prob"] = entry.start_prob
+            output["start_prob_v1"] = entry.start_prob_v1
+            output["end_prob"] = entry.end_prob
+            output["end_prob_v1"] = entry.end_prob_v1
             nbest_json.append(output)
 
         assert len(nbest_json) >= 1
@@ -762,3 +774,6 @@ def _compute_softmax(scores):
     for score in exp_scores:
         probs.append(score / total_sum)
     return probs
+
+def _compute_sigmoid(score):
+    return 1/(1 + math.exp(-score))
