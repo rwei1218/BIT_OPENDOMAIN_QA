@@ -15,6 +15,6 @@
         "do_lower_case": true,
         "verbose_logging": false,
         "local_rank": -1,
-        "checkpoint_id": "1"
+        "checkpoint_id": "0"
     }
 }

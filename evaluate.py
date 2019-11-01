@@ -1,8 +1,26 @@
-from mrc import mrc_evaluate
-import logging
 import argparse
+import glob
 import json
+import logging
+import math
 import os
+import random
+import re
+import sys
+
+import jieba
+import numpy as np
+import torch
+from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler,
+                              TensorDataset)
+from torch.utils.data.distributed import DistributedSampler
+from tqdm import tqdm, trange
+
+from creeper import creeper_v1, creeper_v2
+from flask import Flask, jsonify, request
+from flask_restful import Api, Resource, reqparse
+from mrc import mrc_evaluate, mrc_MODEL_CLASSES, mrc_predict, set_seed, to_list
+from rerank import rerank_MODEL_CLASSES, rerank_predict
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                     datefmt='%m/%d/%Y %H:%M:%S',
@@ -10,7 +28,7 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s -   %(message
 logger = logging.getLogger(__name__)
 
 class Args(object):
-    def __init__(self, config: dict):
+    def __init__(self, config):
         for key, value in config.items():
             self.__dict__[key] = value
 
@@ -62,13 +80,16 @@ class Mrc(object):
 
         logger.info("Training/evaluation parameters %s", args)
 
-
     def evaluate(self):
         mrc_evaluate(self.args, self.model, self.tokenizer)
 
 
 if __name__ == "__main__":
-    eval_config = json.load(open('eval_config.json', 'r'))
-    eval_processor = Mrc(eval_config)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--checkpoint_id", default='0', type=str)
+    args = parser.parse_args()
 
-    
+    eval_config = json.load(open('eval_config.json', 'r'))
+    eval_config["mrc"]["checkpoint_id"] = args.checkpoint_id
+    eval_processor = Mrc(eval_config)
+    eval_processor.evaluate()
