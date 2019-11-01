@@ -99,9 +99,9 @@ def train(args, train_dataset, model, tokenizer):
     model.zero_grad()
     train_iterator = trange(int(args.num_train_epochs), desc="Epoch", disable=args.local_rank not in [-1, 0])
     set_seed(args)  # Added here for reproductibility (even between python 2 and 3)
-    for _ in train_iterator:
+    for epoch_idx, epoch in tqdm(enumerate(train_iterator), desc='training epoches'):
         epoch_iterator = tqdm(train_dataloader, desc="Iteration", disable=args.local_rank not in [-1, 0])
-        for step, batch in enumerate(epoch_iterator):
+        for step, batch in tqdm(enumerate(epoch_iterator), desc='training batches'):
             model.train()
             batch = tuple(t.to(args.device) for t in batch)
             inputs = {'input_ids':       batch[0],
@@ -142,15 +142,15 @@ def train(args, train_dataset, model, tokenizer):
                     tb_writer.add_scalar('loss', (tr_loss - logging_loss)/args.logging_steps, global_step)
                     logging_loss = tr_loss
 
-                if args.local_rank in [-1, 0] and args.save_steps > 0 and global_step % args.save_steps == 0:
-                    # Save model checkpoint
-                    output_dir = os.path.join(args.output_dir, 'checkpoint-{}'.format(global_step))
-                    if not os.path.exists(output_dir):
-                        os.makedirs(output_dir)
-                    model_to_save = model.module if hasattr(model, 'module') else model  # Take care of distributed/parallel training
-                    model_to_save.save_pretrained(output_dir)
-                    torch.save(args, os.path.join(output_dir, 'training_args.bin'))
-                    logger.info("Saving model checkpoint to %s", output_dir)
+                # if args.local_rank in [-1, 0] and args.save_steps > 0 and global_step % args.save_steps == 0:
+                #     # Save model checkpoint
+                #     output_dir = os.path.join(args.output_dir, 'checkpoint-{}'.format(global_step))
+                #     if not os.path.exists(output_dir):
+                #         os.makedirs(output_dir)
+                #     model_to_save = model.module if hasattr(model, 'module') else model  # Take care of distributed/parallel training
+                #     model_to_save.save_pretrained(output_dir)
+                #     torch.save(args, os.path.join(output_dir, 'training_args.bin'))
+                #     logger.info("Saving model checkpoint to %s", output_dir)
 
             if args.max_steps > 0 and global_step > args.max_steps:
                 epoch_iterator.close()
@@ -158,6 +158,16 @@ def train(args, train_dataset, model, tokenizer):
         if args.max_steps > 0 and global_step > args.max_steps:
             train_iterator.close()
             break
+
+        if args.local_rank in [-1, 0]:
+            # Save model checkpoint by epoch
+            output_dir = os.path.join(args.output_dir, 'checkpoint-{}'.format(epoch_idx))
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+            model_to_save = model.module if hasattr(model, 'module') else model  # Take care of distributed/parallel training
+            model_to_save.save_pretrained(output_dir)
+            torch.save(args, os.path.join(output_dir, 'training_args.bin'))
+            logger.info("Saving model checkpoint to %s", output_dir)
 
     if args.local_rank in [-1, 0]:
         tb_writer.close()
@@ -447,7 +457,6 @@ def main():
         global_step, tr_loss = train(args, train_dataset, model, tokenizer)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
-
     # Save the trained model and the tokenizer
     if args.do_train and (args.local_rank == -1 or torch.distributed.get_rank() == 0):
         # Create output directory if needed
@@ -470,7 +479,6 @@ def main():
         model.to(args.device)
 
     # Evaluation - we can ask to evaluate all the checkpoints (sub-directories) in a directory
-    results = {}
     if args.do_eval and args.local_rank in [-1, 0]:
         checkpoints = [args.output_dir]
         if args.eval_all_checkpoints:
@@ -486,15 +494,7 @@ def main():
             model.to(args.device)
 
             # Evaluate
-            result = evaluate(args, model, tokenizer, prefix=global_step)
+            evaluate(args, model, tokenizer, prefix=global_step)
 
-            result = dict((k + ('_{}'.format(global_step) if global_step else ''), v) for k, v in result.items())
-            results.update(result)
-
-    logger.info("Results: {}".format(results))
-
-    return results
-
-
-# if __name__ == "__main__":
-#     main()    
+    return 0
+ 

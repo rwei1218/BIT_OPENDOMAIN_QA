@@ -466,15 +466,19 @@ def main():
                     passage_tokens_len_list.append(len([word for para in sample['passage_tokens'] for word in para]))
 
             if args.output:
-                preprocessed_sample['question'] = sample['question']
-                preprocessed_sample['question_id'] = sample['question_id']
-                preprocessed_sample['doc_tokens'] = [word for para in sample['passage_tokens'] for word in para]
-                preprocessed_sample['doc_tokens_len'] = len(preprocessed_sample['doc_tokens'])
-                if args.mode == "train":
-                    preprocessed_sample['fake_answer'] = sample['fake_answers']
-                    preprocessed_sample['answer_span'] = sample['answer_spans'][0]
+                try:
+                    preprocessed_sample['question'] = sample['question']
+                    preprocessed_sample['question_id'] = sample['question_id']
+                    preprocessed_sample['doc_tokens'] = [word for para in sample['passage_tokens'] for word in para]
+                    preprocessed_sample['doc_tokens_len'] = len(preprocessed_sample['doc_tokens'])
+                    if args.mode == "train":
+                        preprocessed_sample['fake_answer'] = sample['fake_answers']
+                        preprocessed_sample['answer_span'] = sample['answer_spans'][0]
 
-                f_output.write(json.dumps(preprocessed_sample, ensure_ascii=False) + '\n')
+                    f_output.write(json.dumps(preprocessed_sample, ensure_ascii=False) + '\n')
+                except Exception as e:
+                    pass
+
 
         if args.eval:
             print("总问题数量: {}".format(total_num))

@@ -265,6 +265,7 @@ class Demo(object):
             "title",
             "abstract",
             "source_link",
+            "content",
             "answer",
             "final_prob",
             "final_prob_v1"
@@ -323,6 +324,7 @@ class Demo(object):
         examples = sorted(examples, key=lambda x: x['final_prob'], reverse=True)
         examples = self.filter(examples, self.keys)
         return examples
+
 
 if __name__ == "__main__":
     app = Flask(__name__)

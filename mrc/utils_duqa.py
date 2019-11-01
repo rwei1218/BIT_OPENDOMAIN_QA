@@ -8,6 +8,7 @@ import json
 import logging
 import math
 from io import open
+from tqdm import tqdm
 
 from transformers.tokenization_bert import BasicTokenizer, whitespace_tokenize
 
@@ -83,10 +84,10 @@ def read_baidu_examples(input_file, is_training):
         if c == " " or c == "\t" or c == "\r" or c == "\n" or ord(c) == 0x202F:
             return True
         return False
-
+    flag = 0
     with open(input_file, "r", encoding='utf-8') as reader:
         examples = []
-        for line in reader:
+        for line in tqdm(reader, desc='reading baidu examples...'):
             example = json.loads(line)
             qas_id = example['question_id']
             question_text = example['question']
@@ -105,8 +106,7 @@ def read_baidu_examples(input_file, is_training):
                 actual_text = "".join(context_tokens[start_position:(end_position+1)])
                 cleaned_answer_text = orig_answer_text
                 if actual_text.find(cleaned_answer_text) == -1:
-                    logger.warning("Could not find answer: '%s' vs. '%s'",
-                                   actual_text, cleaned_answer_text)
+                    flag += 1
                     continue
             per_example = BaiduExample(
                 qas_id=qas_id,
@@ -117,6 +117,7 @@ def read_baidu_examples(input_file, is_training):
                 end_position=end_position,
                 )
             examples.append(per_example)
+    logger.warning("Could not find answer {}".format(flag))
     return examples
 
 
@@ -171,7 +172,7 @@ def convert_examples_to_features(examples, tokenizer, max_seq_length,
     unique_id = 1000000000
 
     features = []
-    for (example_index, example) in enumerate(examples):
+    for (example_index, example) in tqdm(enumerate(examples), desc='converting features...'):
         query_tokens = tokenizer.tokenize(example.question_text)
 
         if len(query_tokens) > max_query_length:
@@ -274,29 +275,6 @@ def convert_examples_to_features(examples, tokenizer, max_seq_length,
                 doc_offset = len(query_tokens) + 2
                 start_position = tok_start_position - doc_start + doc_offset
                 end_position = tok_end_position - doc_start + doc_offset
-
-            if example_index < 10:
-                logger.info("*** Example ***")
-                logger.info("unique_id: %s" % (unique_id))
-                logger.info("example_index: %s" % (example_index))
-                logger.info("doc_span_index: %s" % (doc_span_index))
-                logger.info("tokens: %s" % " ".join(tokens))
-                logger.info("token_to_orig_map: %s" % " ".join([
-                    "%d:%d" % (x, y) for (x, y) in token_to_orig_map.items()]))
-                logger.info("token_is_max_context: %s" % " ".join([
-                    "%d:%s" % (x, y) for (x, y) in token_is_max_context.items()
-                ]))
-                logger.info("input_ids: %s" % " ".join([str(x) for x in input_ids]))
-                logger.info(
-                    "input_mask: %s" % " ".join([str(x) for x in input_mask]))
-                logger.info(
-                    "segment_ids: %s" % " ".join([str(x) for x in segment_ids]))
-                if is_training:
-                    answer_text = " ".join(tokens[start_position:(end_position + 1)])
-                    logger.info("start_position: %d" % (start_position))
-                    logger.info("end_position: %d" % (end_position))
-                    logger.info(
-                        "answer: %s" % (answer_text))
 
             features.append(
                 InputFeatures(
@@ -613,7 +591,7 @@ def convert_output(all_examples, all_features, all_results, n_best_size,
         # just create a nonce prediction in this case to avoid failure.
         if not nbest:
             nbest.append(
-                _NbestPrediction(text="empty", start_logit=0.0, end_logit=0.0))
+                _NbestPrediction(text="empty", start_logit=0.0, end_logit=0.0, start_prob=0.0, start_prob_v1=0.0, end_prob=0.0, end_prob_v1=0.0))
 
         assert len(nbest) >= 1
 
